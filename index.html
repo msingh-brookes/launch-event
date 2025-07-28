@@ -44,7 +44,7 @@
 
       <!-- Progress -->
       <div id="progress" class="hidden">
-        <ul id="certificates" class="list-disc ml-6 space-y-1"></ul>
+        <ul id="certificates" class="space-y-4"></ul>
       </div>
     </div>
   </div>
@@ -54,7 +54,17 @@
     const networkingMap = {
       "qr-001": ["Jane Smith", "Ali Khan"],
       "qr-002": ["Maria Garcia", "John Lee"],
-      "qr-003": ["Fatima Noor", "Ethan Wang"]
+      "qr-003": ["Fatima Noor", "Ethan Wang"],
+      "qr-004": ["Liam Davis", "Chloe Patel"],
+      "qr-005": ["Noah Kim", "Ava Rossi"]
+    };
+
+    const qrContent = {
+      "qr-001": { title: "Welcome Message", video: "https://www.youtube.com/embed/dQw4w9WgXcQ", text: "Welcome to the event!" },
+      "qr-002": { title: "Tech Talk", video: "https://www.youtube.com/embed/dQw4w9WgXcQ", text: "Let’s explore the future of technology." },
+      "qr-003": { title: "Networking Tips", video: "https://www.youtube.com/embed/dQw4w9WgXcQ", text: "Tips for meaningful connections." },
+      "qr-004": { title: "Lunch Insights", video: "https://www.youtube.com/embed/dQw4w9WgXcQ", text: "What’s cooking?" },
+      "qr-005": { title: "Wrap Up", video: "https://www.youtube.com/embed/dQw4w9WgXcQ", text: "Thanks for coming!" }
     };
 
     let currentUserEmail = "";
@@ -106,29 +116,46 @@
       );
     }
 
+    function generateCredentialId(code) {
+      return `${code}-${btoa(currentUserEmail).replace(/=/g, '').slice(0, 6)}`;
+    }
+
     function handleScan(code) {
+      if (!Object.keys(qrContent).includes(code)) {
+        document.getElementById('scan-result').innerHTML = `<p class='text-red-600'>❌ Unrecognized QR code.</p>`;
+        return;
+      }
       if (!scannedCodes.includes(code)) {
         scannedCodes.push(code);
         localStorage.setItem(`scans_${currentUserEmail}`, JSON.stringify(scannedCodes));
-
-        const people = networkingMap[code] || [];
-        let html = `<p class='mb-2 text-green-700 font-semibold'>✅ Scanned: ${code}</p>`;
-        html += '<p class="mb-1">Talk to:</p>';
-        html += '<ul class="list-disc ml-6">';
-        people.forEach(person => html += `<li>${person}</li>`);
-        html += '</ul>';
-        document.getElementById('scan-result').innerHTML = html;
-      } else {
-        document.getElementById('scan-result').innerHTML = `<p class='text-yellow-600'>⚠️ Already scanned this code.</p>`;
       }
+
+      const people = networkingMap[code] || [];
+      const content = qrContent[code];
+      const credential = generateCredentialId(code);
+
+      let html = `<p class='mb-2 text-green-700 font-semibold'>✅ Scanned: ${code}</p>`;
+      html += '<p class="mb-1">Talk to:</p>';
+      html += '<ul class="list-disc ml-6">';
+      people.forEach(person => html += `<li>${person}</li>`);
+      html += '</ul>';
+      html += `<div class='mt-4'><h3 class='font-bold mb-1'>${content.title}</h3><iframe class='w-full h-48 mb-2' src='${content.video}' frameborder='0' allowfullscreen></iframe><p>${content.text}</p><p class='text-sm text-gray-500 mt-2'>Your Credential ID: <code>${credential}</code></p></div>`;
+      document.getElementById('scan-result').innerHTML = html;
     }
 
     function showProgress() {
       const list = document.getElementById('certificates');
       list.innerHTML = '';
-      scannedCodes.forEach(code => {
+      Object.keys(qrContent).forEach(code => {
+        const unlocked = scannedCodes.includes(code);
+        const content = qrContent[code];
+        const credential = generateCredentialId(code);
         const li = document.createElement('li');
-        li.innerText = `${code} ✅`;
+        li.className = `p-3 rounded border ${unlocked ? 'bg-white' : 'bg-gray-200 text-gray-400'}`;
+        li.innerHTML = `<strong>${code}</strong>: ${content.title}`;
+        if (unlocked) {
+          li.innerHTML += `<div class='mt-2'><iframe class='w-full h-40 mb-2' src='${content.video}' frameborder='0' allowfullscreen></iframe><p>${content.text}</p><p class='text-sm text-gray-500 mt-2'>Credential ID: <code>${credential}</code></p></div>`;
+        }
         list.appendChild(li);
       });
     }
