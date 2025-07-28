@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Companion App</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-xl mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4 text-center">🎉 Event Companion App</h1>
+
+    <!-- Login Section -->
+    <div id="login-section" class="mb-4">
+      <input id="name" type="text" placeholder="Enter your name" class="border p-2 w-full mb-2">
+      <input id="email" type="email" placeholder="Enter your email" class="border p-2 w-full mb-2">
+      <button onclick="login()" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Login</button>
+    </div>
+
+    <!-- Main App Section -->
+    <div id="main-app" class="hidden">
+      <p class="mb-2">Welcome, <span id="user-name"></span>!</p>
+      <div class="flex justify-between mb-4">
+        <button onclick="showSection('scan')" class="bg-green-500 text-white px-3 py-1 rounded">📷 Scan QR</button>
+        <button onclick="showSection('agenda')" class="bg-purple-500 text-white px-3 py-1 rounded">🗓 Agenda</button>
+        <button onclick="showSection('progress')" class="bg-gray-600 text-white px-3 py-1 rounded">✅ Progress</button>
+      </div>
+
+      <!-- QR Scanner -->
+      <div id="scan" class="hidden">
+        <div id="reader" class="mb-4"></div>
+        <div id="scan-result"></div>
+      </div>
+
+      <!-- Agenda -->
+      <div id="agenda" class="hidden">
+        <ul class="list-disc ml-6">
+          <li>10:00 AM - Welcome & Introduction</li>
+          <li>11:00 AM - Keynote: Future of Tech</li>
+          <li>12:30 PM - Networking Lunch</li>
+        </ul>
+      </div>
+
+      <!-- Progress -->
+      <div id="progress" class="hidden">
+        <ul id="certificates" class="list-disc ml-6"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const networkingMap = {
+      "qr-001": ["Jane Smith", "Ali Khan"],
+      "qr-002": ["Maria Garcia", "John Lee"],
+      "qr-003": ["Fatima Noor", "Ethan Wang"]
+    };
+
+    const userData = {
+      name: '',
+      email: '',
+      scanned: []
+    };
+
+    function login() {
+      userData.name = document.getElementById('name').value;
+      userData.email = document.getElementById('email').value;
+      if (userData.name && userData.email) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('main-app').classList.remove('hidden');
+        document.getElementById('user-name').innerText = userData.name;
+      } else {
+        alert('Please enter your name and email.');
+      }
+    }
+
+    function showSection(section) {
+      ['scan', 'agenda', 'progress'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(section).classList.remove('hidden');
+
+      if (section === 'scan') startScanner();
+      if (section === 'progress') showProgress();
+    }
+
+    function startScanner() {
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+          html5QrCode.stop();
+          handleScan(qrCodeMessage);
+        },
+        errorMessage => {}
+      );
+    }
+
+    function handleScan(code) {
+      if (!userData.scanned.includes(code)) {
+        userData.scanned.push(code);
+        let people = networkingMap[code] || [];
+        let html = `<p class='mb-2 text-green-700 font-semibold'>✅ Scanned: ${code}</p>`;
+        html += '<p class="mb-1">Talk to:</p>';
+        html += '<ul class="list-disc ml-6">';
+        people.forEach(person => html += `<li>${person}</li>`);
+        html += '</ul>';
+        document.getElementById('scan-result').innerHTML = html;
+      } else {
+        document.getElementById('scan-result').innerHTML = `<p class='text-yellow-600'>⚠️ Already scanned this code.</p>`;
+      }
+    }
+
+    function showProgress() {
+      const list = document.getElementById('certificates');
+      list.innerHTML = '';
+      userData.scanned.forEach(code => {
+        const li = document.createElement('li');
+        li.innerText = `${code} ✅`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
