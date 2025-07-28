@@ -24,6 +24,7 @@
         <button onclick="showSection('scan')" class="bg-green-500 text-white px-4 py-2 rounded">📷 Scan</button>
         <button onclick="showSection('agenda')" class="bg-purple-600 text-white px-4 py-2 rounded">🗓 Agenda</button>
         <button onclick="showSection('progress')" class="bg-gray-700 text-white px-4 py-2 rounded">✅ Progress</button>
+        <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded">🚪 Logout</button>
       </div>
 
       <!-- QR Scanner -->
@@ -72,6 +73,15 @@
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('main-app').classList.remove('hidden');
       document.getElementById('user-name').innerText = email;
+    }
+
+    function logout() {
+      localStorage.removeItem("event_user_email");
+      document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('login-section').style.display = 'block';
+      document.getElementById('email').value = '';
+      currentUserEmail = "";
+      scannedCodes = [];
     }
 
     function showSection(section) {
